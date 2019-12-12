@@ -9,5 +9,5 @@ setuptools.setup(
     ),
     license="Apache 2.0",
     url="https://github.com/alec-tschantz/planet",
-    packages=["planet"],
+    packages=setuptools.find_packages(),
 )
