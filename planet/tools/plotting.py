@@ -24,6 +24,7 @@ def plot_lines(lines, save_path=None):
 
 
 def plot_imgs(imgs, shape=None, save_path=None):
+    """ @TODO """
     n_img = len(imgs) if isinstance(imgs, list) else 1
 
     if shape is None:

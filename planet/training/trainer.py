@@ -35,8 +35,6 @@ class Trainer(object):
         else:
             self.free_nats = None
 
-        self.metrics = {"kl_loss": [], "obs_loss": [], "reward_loss": []}
-
     def train_batch(self, buffer, batch_size, seq_len):
         obs, acts, rews, non_terms = buffer.sample(batch_size, seq_len)
         obs, acts, rews, non_terms = self._shift_sequences(obs, acts, rews, non_terms)
@@ -54,10 +52,6 @@ class Trainer(object):
         obs_loss = self._observation_loss(decoded_obs, obs)
         reward_loss = self._reward_loss(decoded_reward, rews)
         kl_loss = self._kl_loss(posterior, prior)
-
-        self.metrics["obs_loss"].append(obs_loss.item())
-        self.metrics["reward_loss"].append(reward_loss.item())
-        self.metrics["kl_loss"].append(kl_loss.item())
 
         return obs_loss, reward_loss, kl_loss
 
@@ -83,14 +77,6 @@ class Trainer(object):
             + list(self.reward_model.parameters())
             + list(self.dynamics.parameters())
         )
-
-    def plot_metrics(self, save_path=None):
-        plots = [
-            self.metrics["obs_loss"],
-            self.metrics["reward_loss"],
-            self.metrics["kl_loss"],
-        ]
-        tools.plot_lines(plots, save_path)
 
     def _perform_rollout(self, obs, actions, non_terminals=None):
         """ (seq_len, batch_size, *dims) """

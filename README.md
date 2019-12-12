@@ -2,7 +2,7 @@
 
 ![status](https://img.shields.io/badge/status-development-orange)
 
-This repository provides a reimplementation of [this](https://github.com/Kaixhin/PlaNet) repository, which is itself a reimplementation of the paper [Learning Latent Dynamics for Planning from Pixels](https://arxiv.org/abs/1811.04551) and associated [code](https://github.com/google-research/planet). It was implemented for the purpose of understanding the model, and currently implements nothing and over above the previous implementations.
+This repository provides a reimplementation of [this](https://github.com/Kaixhin/PlaNet) repository, which is itself a reimplementation of the paper [Learning Latent Dynamics for Planning from Pixels](https://arxiv.org/abs/1811.04551) and associated [code](https://github.com/google-research/planet). It was implemented for the purpose of understanding the model, and currently implements nothing and over and above the previous implementations.
 
 ## Requirements
 
