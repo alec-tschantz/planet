@@ -14,3 +14,7 @@ This repository provides a reimplementation of [this](https://github.com/Kaixhin
 ## Acknowledgements
 - [@Kaixhin](https://github.com/Kaixhin) for [Kaixhin/PlaNet](https://github.com/Kaixhin/PlaNet), the basis for this implementation
 - [@danijar](https://github.com/danijar) for [google-research/planet](https://github.com/google-research/planet)
+
+## Notes
+
+- Look into plotting + videos with [torchvision.make_grid](https://stackoverflow.com/questions/51329159/how-can-i-generate-and-display-a-grid-of-images-in-pytorch-with-plt-imshow-and-t)
