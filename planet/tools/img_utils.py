@@ -5,11 +5,11 @@ import numpy as np
 import cv2
 import torch
 
-from planet.tools import IMG_SIZE
+from planet import tools
 
 
 def img_to_obs(rgb_array, bits=5):
-    img = cv2.resize(rgb_array, (IMG_SIZE, IMG_SIZE), interpolation=cv2.INTER_LINEAR)
+    img = cv2.resize(rgb_array, (tools.IMG_SIZE, tools.IMG_SIZE), interpolation=cv2.INTER_LINEAR)
     img = img.transpose(2, 0, 1)
     obs = torch.tensor(img, dtype=torch.float32)
     obs = preprocess_obs(obs, bits)
@@ -18,9 +18,6 @@ def img_to_obs(rgb_array, bits=5):
 
 
 def obs_to_img(obs, postprocess=True, bits=5):
-    ndim = len(list(obs.shape))
-    if ndim == 4:
-        obs = obs.squeeze(0)
     obs = obs.permute(1, 2, 0)
     obs = obs.cpu().detach().numpy()
     if postprocess:

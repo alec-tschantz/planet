@@ -28,7 +28,7 @@ class RecurrentDynamics(nn.Module):
         self.fc_embed_posterior = nn.Linear(hidden_size + embedding_size, node_size)
         self.fc_posterior = nn.Linear(node_size, 2 * state_size)
 
-    def forward(self, prev_hidden, prev_state, actions, obs=None, non_terminals=None):
+    def forward(self, prev_hidden, prev_state, actions, obs=None, non_terms=None):
         T = actions.size(0) + 1
 
         hiddens = [torch.empty(0)] * T
@@ -45,7 +45,7 @@ class RecurrentDynamics(nn.Module):
 
         for t in range(T - 1):
             _state = prior_states[t] if obs is None else posterior_states[t]
-            _state = _state if non_terminals is None else _state * non_terminals[t]
+            _state = _state if non_terms is None else _state * non_terms[t]
 
             """ compute deterministic hidden state """
             out = torch.cat([_state, actions[t]], dim=1)
@@ -87,18 +87,22 @@ class RecurrentDynamics(nn.Module):
         prior_stds = torch.stack(prior_stds[1:], dim=0)
 
         if obs is None:
-            return hiddens, prior_means, prior_stds, prior_states
+            return {
+                "hiddens": hiddens,
+                "prior_means": prior_means,
+                "prior_stds": prior_stds,
+                "prior_states": prior_states,
+            }
         else:
             posterior_means = torch.stack(posterior_means[1:], dim=0)
             posterior_stds = torch.stack(posterior_stds[1:], dim=0)
             posterior_states = torch.stack(posterior_states[1:], dim=0)
-
-            return (
-                hiddens,
-                prior_means,
-                prior_stds,
-                prior_states,
-                posterior_means,
-                posterior_stds,
-                posterior_states,
-            )
+            return {
+                "hiddens": hiddens,
+                "prior_means": prior_means,
+                "prior_stds": prior_stds,
+                "prior_states": prior_states,
+                "posterior_means": posterior_means,
+                "posterior_stds": posterior_stds,
+                "posterior_states": posterior_states,
+            }

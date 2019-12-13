@@ -40,29 +40,18 @@ class RSSModel(object):
             + list(self.dynamics.parameters())
         )
 
-    def perform_rollout(self, hidden, state, actions, obs=None, non_terms=None):
-        """ [hidden]  (batch_size, *dim) 
-            [state]   (batch_size, *dim) 
-            [actions] (rollout_len, batch_size, *dim) 
-        """
-        return self.dynamics(hidden, state, actions, obs, non_terms)
+    def perform_rollout(
+        self, actions, hidden=None, state=None, obs=None, non_terms=None
+    ):
+        if hidden is not None and state is not None:
+            return self.dynamics(hidden, state, actions, obs, non_terms)
+        else:
+            batch_size = obs.size(1)
+            init_hidden, init_state = self.init_hidden_state(batch_size)
 
-    def perform_obs_rollout(self, obs, actions, non_terminals=None):
-        """ (seq_len, batch_size, *dims) """
-
-        """ merge these funcs together """
-
-        batch_size = obs.size(1)
-        init_hidden, init_state = self.init_hidden_state(batch_size)
-
-        encoded_obs = self.encode_obs_seq(obs)
-        return self.dynamics(
-            init_hidden,
-            init_state,
-            actions,
-            obs=encoded_obs,
-            non_terminals=non_terminals,
-        )
+            return self.dynamics(
+                init_hidden, init_state, actions, obs=obs, non_terms=non_terms
+            )
 
     def predict_reward(self, hiddens, posterior_states):
         return self.reward_model(hiddens, posterior_states)
@@ -70,14 +59,13 @@ class RSSModel(object):
     def encode_obs(self, obs):
         return self.encoder(obs)
 
-    def decode_obs_seq(self, hiddens, posterior_states):
-        """ move to trainer """
+    def decode_sequence_obs(self, hiddens, posterior_states):
         return self._bottle(self.decoder, (hiddens, posterior_states))
 
-    def decode_reward_seq(self, hiddens, posterior_states):
+    def decode_sequence_reward(self, hiddens, posterior_states):
         return self._bottle(self.reward_model, (hiddens, posterior_states))
 
-    def encode_obs_seq(self, obs):
+    def encode_sequence_obs(self, obs):
         return self._bottle(self.encoder, (obs,))
 
     def init_hidden_state(self, batch_size):

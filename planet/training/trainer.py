@@ -13,7 +13,7 @@ class Trainer(object):
     def __init__(self, model=None, free_nats=None, device="cpu"):
         self.model = model
         self.device = device
-        
+
         self.free_nats = free_nats
         if self.free_nats is not None:
             self.free_nats = torch.full((1,), free_nats).to(self.device)
@@ -21,14 +21,18 @@ class Trainer(object):
     def train_batch(self, buffer, batch_size, seq_len):
         obs, acts, rews, non_terms = buffer.sample_and_shift(batch_size, seq_len)
 
-        rollout = self.model.perform_obs_rollout(obs, acts, non_terms)
-        hidden, prior_mu, prior_std, _, post_mu, post_std, post_states = rollout
+        encoded_obs = self.model.encode_sequence_obs(obs)
+        rollout = self.model.perform_rollout(acts, obs=encoded_obs, non_terms=non_terms)
 
-        decoded_obs = self.model.decode_obs_seq(hidden, post_states)
-        decoded_reward = self.model.decode_reward_seq(hidden, post_states)
+        decoded_obs = self.model.decode_sequence_obs(
+            rollout["hiddens"], rollout["posterior_states"]
+        )
+        decoded_reward = self.model.decode_sequence_reward(
+            rollout["hiddens"], rollout["posterior_states"]
+        )
 
-        posterior = Normal(post_mu, post_std)
-        prior = Normal(prior_mu, prior_std)
+        posterior = Normal(rollout["posterior_means"], rollout["posterior_stds"])
+        prior = Normal(rollout["prior_means"], rollout["prior_stds"])
 
         obs_loss = self._observation_loss(decoded_obs, obs)
         reward_loss = self._reward_loss(decoded_reward, rews)

@@ -61,7 +61,6 @@ class Buffer(object):
     def sample(self, batch_size, seq_len):
         idxs = [self._get_sequence_idxs(seq_len) for _ in range(batch_size)]
         idxs = np.array(idxs)
-        """ (batch_size, seq_len) """
         batch = self._get_batch(idxs, batch_size, seq_len)
         batch = [torch.as_tensor(item).to(device=self.device) for item in batch]
         return batch
@@ -72,11 +71,9 @@ class Buffer(object):
 
     def _get_batch(self, idxs, batch_size, seq_len):
         vec_idxs = idxs.transpose().reshape(-1)
-        """ (batch_size * seq_len, ) """
         obs = torch.as_tensor(self.obs[vec_idxs].astype(np.float32))
         if self.pixels:
             obs = tools.preprocess_obs(obs, self.bits)
-            """ (batch_size * seq_len, *dims ) """
         obs = obs.reshape(seq_len, batch_size, *obs.shape[1:])
         actions = self.actions[vec_idxs].reshape(seq_len, batch_size, -1)
         rewards = self.rewards[vec_idxs].reshape(seq_len, batch_size)

@@ -6,6 +6,7 @@ import torch
 
 from planet import tools
 
+
 class GymEnv(object):
     def __init__(
         self,
@@ -78,7 +79,7 @@ class GymEnv(object):
 
     @property
     def obs_size(self):
-        return (3, tools.IMG_SIZE, tools.IMG_SIZE)
+        return (tools.N_CHANNELS, tools.IMG_SIZE, tools.IMG_SIZE)
 
     @property
     def action_size(self):
