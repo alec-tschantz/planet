@@ -26,7 +26,8 @@ class Buffer(object):
 
         if self.pixels:
             self.obs = np.empty(
-                (buffer_size, 3, tools.IMG_SIZE, tools.IMG_SIZE), dtype=np.uint8
+                (buffer_size, tools.N_CHANNELS, tools.IMG_SIZE, tools.IMG_SIZE),
+                dtype=np.uint8,
             )
         else:
             self.obs = np.empty((buffer_size, state_size), dtype=np.float32)
@@ -65,13 +66,17 @@ class Buffer(object):
         batch = [torch.as_tensor(item).to(device=self.device) for item in batch]
         return batch
 
+    def sample_and_shift(self, batch_size, seq_len):
+        obs, actions, rewards, non_terminals = self.sample(batch_size, seq_len)
+        return self._shift_sequences(obs, actions, rewards, non_terminals)
+
     def _get_batch(self, idxs, batch_size, seq_len):
         vec_idxs = idxs.transpose().reshape(-1)
         """ (batch_size * seq_len, ) """
         obs = torch.as_tensor(self.obs[vec_idxs].astype(np.float32))
         if self.pixels:
             obs = tools.preprocess_obs(obs, self.bits)
-            """ (batch_size * seq_len, 3, img_size, img_size ) """
+            """ (batch_size * seq_len, *dims ) """
         obs = obs.reshape(seq_len, batch_size, *obs.shape[1:])
         actions = self.actions[vec_idxs].reshape(seq_len, batch_size, -1)
         rewards = self.rewards[vec_idxs].reshape(seq_len, batch_size)
@@ -86,4 +91,11 @@ class Buffer(object):
             idxs = np.arange(start_idx, start_idx + seq_len) % self.buffer_size
             valid = not self.idx in idxs[1:]
         return idxs
+
+    def _shift_sequences(self, obs, actions, rewards, non_terminals):
+        obs = obs[1:]
+        actions = actions[:-1]
+        rewards = rewards[:-1]
+        non_terminals = non_terminals[:-1]
+        return obs, actions, rewards, non_terminals
 

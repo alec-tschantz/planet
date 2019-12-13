@@ -4,7 +4,7 @@ from planet import tools
 
 
 def inspect_rollout(decoded_obs, obs, save_path=None):
-    """ @TODO """
+    """ @TODO (move to tools) """
     seq_len = obs.size(0)
 
     """ suitable dims for plotting """

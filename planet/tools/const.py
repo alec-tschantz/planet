@@ -1,1 +1,2 @@
+N_CHANNELS = 3
 IMG_SIZE = 64
