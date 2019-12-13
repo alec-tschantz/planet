@@ -65,11 +65,19 @@ def main(args):
             loss = (obs_loss + reward_loss + kl_loss).item()
 
             if epoch % args.log_every == 0:
-                print("Train Epoch {} | [{:3f}]".format(epoch, loss))
+                print(
+                    "Train Epoch {} | [loss {:.2f} | obs {:.2f} | reward {:.2f} | kl {:.2f}]".format(
+                        epoch, loss, obs_loss.item(), reward_loss.item(), kl_loss.item()
+                    )
+                )
 
-        _, buffer = agent.run_episode(buffer, action_noise=args.action_noise)
+        expl_reward, buffer = agent.run_episode(buffer, action_noise=args.action_noise)
         reward, buffer = agent.run_episode(buffer)
-        print("Episode {} | Reward [{:3f}]".format(episode, reward))
+        print(
+            "Episode {} | [explore reward {:.2f} | reward {:.2f} | total frames {:.2f}]".format(
+                episode, expl_reward, reward, buffer.total_steps
+            )
+        )
 
 
 if __name__ == "__main__":
