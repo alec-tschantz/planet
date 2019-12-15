@@ -12,21 +12,24 @@ class Agent(object):
         self.planner = planner
         self.device = device
 
-    def test_rollout(self, buffer=None, action_noise=None, frames=False, render=False):
+    def run_episode(self, buffer=None, action_noise=None, frames=None, render=False):
         self.model.eval()
 
         with torch.no_grad():
             obs = self.env.reset()
             done = False
             total_reward = 0
+
             if frames is not None:
                 frames = []
+
             hidden, state, action = self.model.init_hidden_state_action(1)
 
             while not done:
                 encoded_obs = self.model.encode_obs(obs)
                 encoded_obs = encoded_obs.unsqueeze(0)
                 action = action.unsqueeze(0)
+
                 rollout = self.model.perform_rollout(
                     action, hidden=hidden, state=state, obs=encoded_obs
                 )
@@ -37,7 +40,6 @@ class Agent(object):
                 action = self._add_action_noise(action, action_noise)
 
                 next_obs, reward, done = self.env.step(action[0].cpu())
-
                 total_reward += reward.item()
 
                 if frames is not None:
@@ -64,6 +66,7 @@ class Agent(object):
             elif buffer is None:
                 return total_reward, frames
             elif frames is None:
+                print("yes")
                 return total_reward, buffer
             else:
                 return total_reward, buffer, frames
