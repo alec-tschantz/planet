@@ -64,9 +64,9 @@ def main(args):
     print(message.format(buffer.current_episodes, buffer.current_size))
 
     for episode in range(log.episode, args.n_episodes):
-        log.set_data(episode)
         print("\n === Episode {} ===".format(episode))
-
+        log.log_data(episode)
+    
         total_obs_loss = 0
         total_rew_loss = 0
         total_kl_loss = 0

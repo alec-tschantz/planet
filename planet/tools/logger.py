@@ -20,7 +20,7 @@ class Logger(object):
         self.model_path = os.path.join(self.logdir, "models")
         self.video_path = os.path.join(self.logdir, "videos")
         self.args_path = os.path.join(self.logdir, "args.json")
-        self.info_path = os.path.join(self.logdir, "exp_info.json")
+        self.metrics_path = os.path.join(self.logdir, "metrics_path.json")
 
         if os.path.exists(self.logdir):
             self.load_log()
@@ -28,6 +28,7 @@ class Logger(object):
             self.create_log()
 
     def create_log(self):
+        print("Creating a new _dir_ at {}".format(self.logdir))
         os.makedirs(self.logdir, exist_ok=True)
         os.makedirs(self.model_path, exist_ok=True)
         os.makedirs(self.video_path, exist_ok=True)
@@ -42,6 +43,8 @@ class Logger(object):
             json.dump(self.info, json_file)
 
     def load_log(self):
+        print("Loading _dir_ from {}".format(self.logdir))
+
         with open(self.args_path) as json_file:
             self.args = json.load(json_file)
 
@@ -50,22 +53,31 @@ class Logger(object):
 
         self.load_models()
 
+    def load_models(self):
+        if os.path.exists(self.model_path):
+            model_path = os.path.join(self.model_path, "model.pth")
+            model_dicts = torch.load(model_path)
+            self.model.load_state_dict(model_dicts)
+            self.optim.load_state_dict(model_dicts["optim"])
+
     def checkpoint(self, episode):
         path = os.path.join(self.model_path, "model.pth")
         save_dict = self.model.get_save_dict()
         save_dict["optim"] = self.optim.state_dict()
         torch.save(save_dict, path)
-        
+
         with open(self.args_path, "w") as json_file:
             json.dump(self.args, json_file)
 
         with open(self.info_path, "w") as json_file:
             json.dump(self.info, json_file)
 
-    def set_data(self, episode):
+        self.save_info
+
+    def log_data(self, episode):
         self.info["episode"] = episode
 
-    def save_info(self, episode):
+    def save_info(self):
         json_f = json.dumps(self.exp_info)
         f = open(self.info_path, "w")
         f.write(json_f)
@@ -83,13 +95,6 @@ class Logger(object):
         for frame in frames:
             writer.write(frame)
         writer.release()
-
-    def load_models(self):
-        if os.path.exists(self.model_path):
-            model_path = os.path.join(self.model_path, "model.pth")
-            model_dicts = torch.load(model_path)
-            self.model.load_state_dict(model_dicts)
-            self.optim.load_state_dict(model_dicts["optim"])
 
     @property
     def episode(self):
