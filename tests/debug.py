@@ -104,7 +104,9 @@ def main(args):
         message = "Reward [expl rew {:.2f} | rew {:.2f} | frames {:.2f}]"
         print(message.format(expl_reward, reward, buffer.current_size))
         log.save_video(frames, episode)
-        log.checkpoint(episode)
+        
+        log.checkpoint()
+        log.save_metrics()
         
 
 if __name__ == "__main__":
@@ -112,7 +114,7 @@ if __name__ == "__main__":
     parser.add_argument("--env_name", type=str, default="Pendulum-v0")
     parser.add_argument("--max_episode_len", type=int, default=200)
     parser.add_argument("--action_repeat", type=int, default=2)
-    parser.add_argument("--data_path", type=str, default="data")
+    parser.add_argument("--data_path", type=str, default="data_2")
     parser.add_argument("--device", type=str, default="cpu")
     parser.add_argument("--pixels", type=bool, default=True)
     parser.add_argument("--hidden_size", type=int, default=10)

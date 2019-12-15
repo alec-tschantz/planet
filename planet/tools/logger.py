@@ -20,7 +20,7 @@ class Logger(object):
         self.model_path = os.path.join(self.logdir, "models")
         self.video_path = os.path.join(self.logdir, "videos")
         self.args_path = os.path.join(self.logdir, "args.json")
-        self.metrics_path = os.path.join(self.logdir, "metrics_path.json")
+        self.metrics_path = os.path.join(self.logdir, "metrics.json")
 
         if os.path.exists(self.logdir):
             self.load_log()
@@ -60,7 +60,7 @@ class Logger(object):
             self.model.load_state_dict(model_dicts)
             self.optim.load_state_dict(model_dicts["optim"])
 
-    def checkpoint(self, episode):
+    def checkpoint(self):
         path = os.path.join(self.model_path, "model.pth")
         save_dict = self.model.get_save_dict()
         save_dict["optim"] = self.optim.state_dict()
