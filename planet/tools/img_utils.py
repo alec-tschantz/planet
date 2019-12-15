@@ -36,19 +36,5 @@ def postprocess_obs(obs, bits):
     ).astype(np.uint8)
 
 
-def write_video(frames, save_path):
-    """ convert to (h, w, c) """
-    frames = np.stack(frames, axis=0).transpose(0, 2, 3, 1)
-    frames = np.multiply(frames, 255).clip(0, 255).astype(np.uint8)
-    frames = frames[:, :, :, ::-1]
-    _, h, w, _ = frames.shape
-    writer = cv2.VideoWriter(
-        save_path, cv2.VideoWriter_fourcc(*"mp4v"), 30.0, (w, h), True
-    )
-    for frame in frames:
-        writer.write(frame)
-    writer.release()
-
-
 def save_imgs(frames, save_path):
     save_image(torch.as_tensor(frames[-1]), save_path)

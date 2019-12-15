@@ -18,8 +18,8 @@ This repository provides a reimplementation of the [Kaixhin/PlaNet](https://gith
 
 - __Improvements__
   - Do model / data loading
+  - Metrics - including time (option to save to GDrive)
   - Test with fully observed
-  - Do metric plotting
   - Normalization
 
 - __Environments__
@@ -28,3 +28,4 @@ This repository provides a reimplementation of the [Kaixhin/PlaNet](https://gith
 
 - __Errors__
   - Buffer does not work if buffer is less than sequence length
+  - Cannot save buffer as a single instance, needs to be split up

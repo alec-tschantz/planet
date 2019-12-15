@@ -102,6 +102,20 @@ class RSSModel(object):
         action = torch.zeros(batch_size, self.action_size).to(self.device)
         return init_hidden, init_state, action
 
+    def get_save_dict(self):
+        return {
+            "dynamics": self.dynamics.state_dict(),
+            "encoder": self.encoder.state_dict(),
+            "decoder": self.decoder.state_dict(),
+            "reward_model": self.reward_model.state_dict(),
+        }
+
+    def load_state_dict(self, model_dict):
+        self.dynamics.load_state_dict(model_dict["dynamics"])
+        self.encoder.load_state_dict(model_dict["encoder"])
+        self.decoder.load_state_dict(model_dict["decoder"])
+        self.reward_model.load_state_dict(model_dict["reward_model"])
+
     def _bottle(self, f, x_tuple):
         """ loops over the first dims of x [seq_len] and applies f """
         x_sizes = tuple(map(lambda x: x.size(), x_tuple))
