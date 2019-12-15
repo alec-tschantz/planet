@@ -8,7 +8,13 @@ from torch.nn import functional as F
 
 class Planner(nn.Module):
     def __init__(
-        self, model, action_size, plan_horizon, optim_iters, candidates, top_candidates
+        self,
+        model,
+        action_size,
+        plan_horizon=12,
+        optim_iters=10,
+        candidates=1000,
+        top_candidates=100,
     ):
         super().__init__()
         self.model = model
@@ -34,7 +40,7 @@ class Planner(nn.Module):
         state = state.expand(batch_size, self.candidates, state_size)
         state = state.reshape(-1, state_size)
 
-        """ plan_horizon, batch_size, 1, action_size """
+        """ (plan_horizon, batch_size, 1, action_size) """
         action_mean = torch.zeros(
             self.plan_horizon, batch_size, 1, self.action_size, device=hidden.device
         )
@@ -64,7 +70,7 @@ class Planner(nn.Module):
             _states = rollout["prior_states"].view(-1, state_size)
 
             """ (batch_size, candidates) """
-            returns = self.model.predict_reward(_hiddens, _states)
+            returns = self.model.decode_reward(_hiddens, _states)
             returns = returns.view(self.plan_horizon, -1)
             returns = returns.sum(dim=0)
             returns = returns.reshape(batch_size, self.candidates)

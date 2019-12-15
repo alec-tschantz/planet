@@ -45,7 +45,7 @@ class DebugEnv(object):
 
     @property
     def obs_size(self):
-        return (tools.N_CHANNELS, tools.IMG_SIZE, tools.IMG_SIZE)
+        return (3, 64, 64)
 
     @property
     def action_size(self):
@@ -54,10 +54,10 @@ class DebugEnv(object):
     @property
     def observation_space(self):
         low = np.zeros(
-            [tools.IMG_SIZE, tools.IMG_SIZE, tools.N_CHANNELS], dtype=np.float32
+            [64, 64, 3], dtype=np.float32
         )
         high = np.ones(
-            [tools.IMG_SIZE, tools.IMG_SIZE, tools.N_CHANNELS], dtype=np.float32
+            [64, 64, 3], dtype=np.float32
         )
         return gym.spaces.Box(low, high)
 

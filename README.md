@@ -14,3 +14,9 @@ This repository provides a reimplementation of [this](https://github.com/Kaixhin
 ## Acknowledgements
 - [@Kaixhin](https://github.com/Kaixhin) for [Kaixhin/PlaNet](https://github.com/Kaixhin/PlaNet), the basis for this implementation
 - [@danijar](https://github.com/danijar) for [google-research/planet](https://github.com/google-research/planet)
+
+
+## Tasks
+- Add `grad_clip_norm`
+- Normalization
+- _Error_: Buffer does not work if buffer is less than sequence length

@@ -2,6 +2,7 @@
 # pylint: disable=no-member
 
 import torch
+import torch.nn as nn
 from torch.nn import functional as F
 from torch.distributions import Normal
 from torch.distributions.kl import kl_divergence
@@ -19,14 +20,21 @@ class Trainer(object):
             self.free_nats = torch.full((1,), free_nats).to(self.device)
 
     def train_batch(self, buffer, batch_size, seq_len):
+        """ (seq_len, batch_size, *dims) """
         obs, acts, rews, non_terms = buffer.sample_and_shift(batch_size, seq_len)
 
+        """ (seq_len, batch_size, embedding_size) """
         encoded_obs = self.model.encode_sequence_obs(obs)
+
+        """ (seq_len, batch_size, dim) """
         rollout = self.model.perform_rollout(acts, obs=encoded_obs, non_terms=non_terms)
 
+        """ (seq_len, batch_size, *dims) """
         decoded_obs = self.model.decode_sequence_obs(
             rollout["hiddens"], rollout["posterior_states"]
         )
+
+        """ (seq_len, batch_size) """
         decoded_reward = self.model.decode_sequence_reward(
             rollout["hiddens"], rollout["posterior_states"]
         )
@@ -39,6 +47,9 @@ class Trainer(object):
         kl_loss = self._kl_loss(posterior, prior)
 
         return obs_loss, reward_loss, kl_loss
+
+    def grad_clip(self, grad_clip_norm):
+        nn.utils.clip_grad_norm_(self.model.parameters(), grad_clip_norm, norm_type=2)
 
     def _observation_loss(self, decoded_obs, obs):
         return (

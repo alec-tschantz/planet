@@ -75,11 +75,10 @@ class GymEnv(object):
 
     @property
     def state_size(self):
-        return self._env.observation_space.shape
-
-    @property
-    def obs_size(self):
-        return (tools.N_CHANNELS, tools.IMG_SIZE, tools.IMG_SIZE)
+        if self.pixels:
+            return (3, 64, 64)
+        else:
+            return self._env.observation_space.shape
 
     @property
     def action_size(self):

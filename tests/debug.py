@@ -19,6 +19,7 @@ from planet.training import Buffer, Trainer
 from planet.control import Agent, Planner
 from planet.models import RSSModel
 from planet import tools
+from planet.tools import validate
 
 
 def main(args):
@@ -43,16 +44,24 @@ def main(args):
     planner = Planner(
         rssm,
         action_size,
-        args.plan_horizon,
-        args.optim_iters,
-        args.candidates,
-        args.top_candidates,
+        plan_horizon=args.plan_horizon,
+        optim_iters=args.optim_iters,
+        candidates=args.candidates,
+        top_candidates=args.top_candidates,
     )
 
-    agent = Agent(env, planner, rssm, action_size, device=args.device)
+    agent = Agent(env, planner, rssm, device=args.device)
     buffer = agent.get_seed_episodes(buffer, args.n_seed_episodes)
+    message = "Collected [{} episodes] [{} frames]"
+    print(message.format(buffer.current_episodes, buffer.current_size))
 
     for episode in range(args.n_episodes):
+
+        total_obs_loss = 0
+        total_rew_loss = 0
+        total_kl_loss = 0
+
+        rssm.train()
         for epoch in range(args.n_train_epochs):
             obs_loss, reward_loss, kl_loss = trainer.train_batch(
                 buffer, args.batch_size, args.seq_len
@@ -60,24 +69,35 @@ def main(args):
 
             optim.zero_grad()
             (obs_loss + reward_loss + kl_loss).backward()
+            trainer.grad_clip(args.grad_clip_norm)
             optim.step()
 
-            loss = (obs_loss + reward_loss + kl_loss).item()
+            total_obs_loss += obs_loss.item()
+            total_rew_loss += reward_loss.item()
+            total_kl_loss += kl_loss.item()
 
-            if epoch % args.log_every == 0:
+            if epoch % args.log_every == 0 and epoch > 0:
                 print(
-                    "Train Epoch {} | [loss {:.2f} | obs {:.2f} | reward {:.2f} | kl {:.2f}]".format(
-                        epoch, loss, obs_loss.item(), reward_loss.item(), kl_loss.item()
+                    "Episode {} [train epoch {}] | obs {:.2f} | reward {:.2f} | kl {:.2f}]".format(
+                        episode,
+                        epoch,
+                        total_obs_loss / epoch,
+                        total_rew_loss / epoch,
+                        total_kl_loss / epoch,
                     )
                 )
 
         expl_reward, buffer = agent.run_episode(buffer, action_noise=args.action_noise)
         reward, buffer = agent.run_episode(buffer)
         print(
-            "Episode {} | [explore reward {:.2f} | reward {:.2f} | total frames {:.2f}]".format(
-                episode, expl_reward, reward, buffer.total_steps
+            "Episode {} [explore reward {:.2f} | reward {:.2f} | total frames {:.2f}]".format(
+                episode, expl_reward, reward, buffer.current_size
             )
         )
+
+        frames = validate.test_rollout(env, rssm, planner)
+        tools.write_video(frames, "{}/video_{}.mp4".format(args.data_path, episode))
+        tools.save_imgs(frames, "{}/recon_{}.png".format(args.data_path, episode))
 
 
 if __name__ == "__main__":
@@ -101,6 +121,7 @@ if __name__ == "__main__":
     parser.add_argument("--n_episodes", type=int, default=5)
     parser.add_argument("--batch_size", type=int, default=10)
     parser.add_argument("--seq_len", type=int, default=5)
+    parser.add_argument("--grad_clip_norm", type=int, default=1000)
     parser.add_argument("--log_every", type=int, default=1)
     parser.add_argument("--action_noise", type=float, default=0.3)
     args = parser.parse_args()

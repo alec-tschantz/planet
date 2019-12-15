@@ -26,7 +26,7 @@ class Buffer(object):
 
         if self.pixels:
             self.obs = np.empty(
-                (buffer_size, tools.N_CHANNELS, tools.IMG_SIZE, tools.IMG_SIZE),
+                (buffer_size, 3, 64, 64),
                 dtype=np.uint8,
             )
         else:
@@ -68,6 +68,14 @@ class Buffer(object):
     def sample_and_shift(self, batch_size, seq_len):
         obs, actions, rewards, non_terminals = self.sample(batch_size, seq_len)
         return self._shift_sequences(obs, actions, rewards, non_terminals)
+
+    @property
+    def current_size(self):
+        return self.total_steps
+
+    @property
+    def current_episodes(self):
+        return self.total_episodes
 
     def _get_batch(self, idxs, batch_size, seq_len):
         vec_idxs = idxs.transpose().reshape(-1)

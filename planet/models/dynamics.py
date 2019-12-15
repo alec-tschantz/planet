@@ -29,6 +29,13 @@ class RecurrentDynamics(nn.Module):
         self.fc_posterior = nn.Linear(node_size, 2 * state_size)
 
     def forward(self, prev_hidden, prev_state, actions, obs=None, non_terms=None):
+        """
+        prev_hidden (batch, hidden_size)
+        prev_state  (batch, hidden_size)
+        actions     (seq_len, batch, hidden_size)
+        obs         (seq_len, batch, hidden_size)
+        non_terms   (seq_len, batch, hidden_size)
+        """
         T = actions.size(0) + 1
 
         hiddens = [torch.empty(0)] * T

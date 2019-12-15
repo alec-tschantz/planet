@@ -5,38 +5,51 @@ import torch
 
 
 class Agent(object):
-    def __init__(self, env, planner, model, action_size, device="cpu"):
+    def __init__(self, env, planner, model, device="cpu"):
         self.env = env
-        self.planner = planner
         self.model = model
-        self.action_size = action_size
+        self.planner = planner
         self.device = device
 
     def run_episode(self, buffer=None, action_noise=None, render=False):
         with torch.no_grad():
-            hidden, state = self.model.init_hidden_state(1)
-            action = torch.zeros(1, self.action_size, device=self.device)
+
+            """ (1, dim) """
+            hidden, state, action = self.model.init_hidden_state_action(1)
+
+            """ (1, *dims) """
             obs = self.env.reset()
             done = False
             total_reward = 0
 
+            """ main loop """
             while not done:
+
+                """ (1, embedding_size) """
                 encoded_obs = self.model.encode_obs(obs)
+                """ (1, 1, embeddding_size) """
                 encoded_obs = encoded_obs.unsqueeze(0)
+                """ (1, 1, action_size) """
                 action = action.unsqueeze(0)
 
+                """ { (1, 1, *dim)...} """
                 rollout = self.model.perform_rollout(
                     action, hidden=hidden, state=state, obs=encoded_obs
                 )
+
+                """ (1, dim) """
                 hidden = rollout["hiddens"].squeeze(0)
                 state = rollout["posterior_states"].squeeze(0)
 
+                """ (1, action_size) """
                 action = self.planner(hidden, state)
                 self._add_action_noise(action, action_noise)
 
+                """ update environment """
                 next_obs, reward, done = self.env.step(action[0].cpu())
                 total_reward += reward.item()
 
+                """ update buffer """
                 if buffer is not None:
                     buffer.add(obs, action, reward, done)
                 obs = next_obs
@@ -46,6 +59,7 @@ class Agent(object):
                 if done:
                     break
 
+            """ close & return """
             self.env.close()
             if buffer is None:
                 return total_reward
