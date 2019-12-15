@@ -15,6 +15,7 @@ This repository provides a reimplementation of the [Kaixhin/PlaNet](https://gith
 - [@danijar](https://github.com/danijar) for [google-research/planet](https://github.com/google-research/planet)
 
 ## Tasks
+- Move validate / test to same function to save compute
 - Test with fully observed
 - Do model / data loading
 - Use visdoom [https://github.com/shakenes/vizdoomgym]

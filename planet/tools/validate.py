@@ -30,9 +30,9 @@ def test_rollout(env, model, planner):
             total_reward += reward.item()
             
             """ store frames """
-            decoded_obs = model.decode_obs(hidden, state).cpu()
+            decoded_obs = model.decode_obs(hidden, state)
             cat = torch.cat([obs, decoded_obs], dim=3)
-            grid = make_grid(cat + 0.5, nrow=5).numpy()
+            grid = make_grid(cat + 0.5, nrow=5).cpu().numpy()
             frames.append(grid)
       
             obs = next_obs
