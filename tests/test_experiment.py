@@ -82,7 +82,7 @@ def main(args):
             total_rew_loss += reward_loss.item()
             total_kl_loss += kl_loss.item()
 
-            if epoch % args.log_every == 0:
+            if epoch % args.log_every == 0 and epoch > 0:
                 print(
                     "Episode {} [train epoch {}] | obs {:.2f} | reward {:.2f} | kl {:.2f}]".format(
                         episode,

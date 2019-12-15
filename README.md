@@ -2,7 +2,7 @@
 
 ![status](https://img.shields.io/badge/status-development-orange)
 
-This repository provides a reimplementation of [this](https://github.com/Kaixhin/PlaNet) repository, which is itself a reimplementation of the paper [Learning Latent Dynamics for Planning from Pixels](https://arxiv.org/abs/1811.04551) and associated [code](https://github.com/google-research/planet). It was implemented for the purpose of understanding the model, and currently implements nothing over and above the previous implementations.
+This repository provides a reimplementation of the [Kaixhin/PlaNet](https://github.com/Kaixhin/PlaNet) repository, which is itself a reimplementation of [Learning Latent Dynamics for Planning from Pixels](https://arxiv.org/abs/1811.04551) and the associated [code](https://github.com/google-research/planet). It was implemented for the purpose of understanding the model, and currently implements nothing over and above the previous implementations.
 
 ## Requirements
 
@@ -17,6 +17,6 @@ This repository provides a reimplementation of [this](https://github.com/Kaixhin
 
 
 ## Tasks
-- Add `grad_clip_norm`
+- Add `data` to `.gitignore`
 - Normalization
 - _Error_: Buffer does not work if buffer is less than sequence length
