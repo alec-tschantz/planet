@@ -19,6 +19,5 @@ This repository provides a reimplementation of the [Kaixhin/PlaNet](https://gith
 - Do model / data loading
 - Use visdoom [https://github.com/shakenes/vizdoomgym]
 - Use [pybullet](https://github.com/benelot/pybullet-gym)
-- Add `data` to `.gitignore`
 - Normalization
 - _Error_: Buffer does not work if buffer is less than sequence length
