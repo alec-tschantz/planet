@@ -39,9 +39,9 @@ class GymEnv(object):
     def reset(self):
         self.t = 0
         self.done = False
+        self._state = self._env.reset()
         if self.raw_pixels:
             self._env.env.viewer.window.dispatch_events()
-        self._state = self._env.reset()
         return self._get_observation()
 
     def step(self, action):
@@ -49,9 +49,9 @@ class GymEnv(object):
         reward = 0
 
         for _ in range(self.action_repeat):
+            state, reward_k, done, _ = self._env.step(action)
             if self.raw_pixels:
                 self._env.env.viewer.window.dispatch_events()
-            state, reward_k, done, _ = self._env.step(action)
             reward += reward_k
             self.t += 1
             done = done or self.t == self.max_episode_len
