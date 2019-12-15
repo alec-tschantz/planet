@@ -87,7 +87,7 @@ def main(args):
                 message = "> Epoch {} [ obs {:.2f} | rew {:.2f} | kl {:.2f}]"
                 print(
                     message.format(
-                        episode,
+                        epoch,
                         total_obs_loss / epoch,
                         total_rew_loss / epoch,
                         total_kl_loss / epoch,

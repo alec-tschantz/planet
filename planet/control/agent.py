@@ -66,7 +66,6 @@ class Agent(object):
             elif buffer is None:
                 return total_reward, frames
             elif frames is None:
-                print("yes")
                 return total_reward, buffer
             else:
                 return total_reward, buffer, frames
