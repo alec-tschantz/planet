@@ -34,13 +34,13 @@ class Logger(object):
         os.makedirs(self.video_path, exist_ok=True)
 
         self.args = vars(self.args)
-        self.info = {"episode": 0}
+        self.metrics = {"episode": 0}
 
         with open(self.args_path, "w") as json_file:
             json.dump(self.args, json_file)
 
-        with open(self.info_path, "w") as json_file:
-            json.dump(self.info, json_file)
+        with open(self.metrics_path, "w") as json_file:
+            json.dump(self.metrics, json_file)
 
     def load_log(self):
         print("Loading _dir_ from {}".format(self.logdir))
@@ -48,8 +48,8 @@ class Logger(object):
         with open(self.args_path) as json_file:
             self.args = json.load(json_file)
 
-        with open(self.info_path) as json_file:
-            self.info = json.load(json_file)
+        with open(self.metrics_path) as json_file:
+            self.metrics = json.load(json_file)
 
         self.load_models()
 
@@ -66,20 +66,15 @@ class Logger(object):
         save_dict["optim"] = self.optim.state_dict()
         torch.save(save_dict, path)
 
-        with open(self.args_path, "w") as json_file:
-            json.dump(self.args, json_file)
-
-        with open(self.info_path, "w") as json_file:
-            json.dump(self.info, json_file)
-
-        self.save_info
+        with open(self.metrics_path, "w") as json_file:
+            json.dump(self.metrics, json_file)
 
     def log_data(self, episode):
-        self.info["episode"] = episode
+        self.metrics["episode"] = episode
 
-    def save_info(self):
-        json_f = json.dumps(self.exp_info)
-        f = open(self.info_path, "w")
+    def save_metrics(self):
+        json_f = json.dumps(self.metrics)
+        f = open(self.metrics_path, "w")
         f.write(json_f)
         f.close()
 
@@ -98,5 +93,5 @@ class Logger(object):
 
     @property
     def episode(self):
-        return self.info["episode"]
+        return self.metrics["episode"]
 
