@@ -15,9 +15,11 @@ This repository provides a reimplementation of the [Kaixhin/PlaNet](https://gith
 - [@danijar](https://github.com/danijar) for [google-research/planet](https://github.com/google-research/planet)
 
 ## Tasks
-- Move validate / test to same function to save compute
 - Test with fully observed
+- Do metric plotting
 - Do model / data loading
+- Move validate & test to same function to save compute
+- Move all environments to same class -> deal with necessary differences
 - Use visdoom [https://github.com/shakenes/vizdoomgym]
 - Use [pybullet](https://github.com/benelot/pybullet-gym)
 - Normalization

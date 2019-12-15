@@ -19,7 +19,6 @@ from planet.training import Buffer, Trainer
 from planet.control import Agent, Planner
 from planet.models import RSSModel
 from planet import tools
-from planet.tools import validate
 
 
 def main(args):
@@ -96,11 +95,9 @@ def main(args):
                 )
 
         expl_reward, buffer = agent.run_episode(buffer, action_noise=args.action_noise)
-        reward, buffer = agent.run_episode(buffer)
+        reward, buffer, frames = agent.run_episode(buffer, frames=True)
         message = "Reward [expl rew {:.2f} | rew {:.2f} | frames {:.2f}]"
-        print(message.format(episode, expl_reward, reward, buffer.current_size))
-
-        frames = validate.test_rollout(env, rssm, planner)
+        print(message.format(expl_reward, reward, buffer.current_size))
         tools.write_video(frames, "{}/video_{}.mp4".format(args.data_path, episode))
         tools.save_imgs(frames, "{}/recon_{}.png".format(args.data_path, episode))
 

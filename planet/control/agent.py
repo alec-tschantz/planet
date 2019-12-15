@@ -2,6 +2,7 @@
 # pylint: disable=no-member
 
 import torch
+from torchvision.utils import make_grid
 
 
 class Agent(object):
@@ -11,43 +12,39 @@ class Agent(object):
         self.planner = planner
         self.device = device
 
-    def run_episode(self, buffer=None, action_noise=None, render=False):
+    def test_rollout(self, buffer=None, action_noise=None, frames=False, render=False):
+        self.model.eval()
+
         with torch.no_grad():
-
-            """ (1, dim) """
-            hidden, state, action = self.model.init_hidden_state_action(1)
-
-            """ (1, *dims) """
             obs = self.env.reset()
             done = False
             total_reward = 0
+            if frames is not None:
+                frames = []
+            hidden, state, action = self.model.init_hidden_state_action(1)
 
-            """ main loop """
             while not done:
-
-                """ (1, embedding_size) """
                 encoded_obs = self.model.encode_obs(obs)
-                """ (1, 1, embeddding_size) """
                 encoded_obs = encoded_obs.unsqueeze(0)
-                """ (1, 1, action_size) """
                 action = action.unsqueeze(0)
-
-                """ { (1, 1, *dim)...} """
                 rollout = self.model.perform_rollout(
                     action, hidden=hidden, state=state, obs=encoded_obs
                 )
-
-                """ (1, dim) """
                 hidden = rollout["hiddens"].squeeze(0)
                 state = rollout["posterior_states"].squeeze(0)
 
-                """ (1, action_size) """
                 action = self.planner(hidden, state)
-                self._add_action_noise(action, action_noise)
+                action = self._add_action_noise(action, action_noise)
 
-                """ update environment """
                 next_obs, reward, done = self.env.step(action[0].cpu())
+
                 total_reward += reward.item()
+
+                if frames is not None:
+                    decoded_obs = self.model.decode_obs(hidden, state)
+                    cat = torch.cat([obs, decoded_obs], dim=3)
+                    grid = make_grid(cat + 0.5, nrow=5).cpu().numpy()
+                    frames.append(grid)
 
                 """ update buffer """
                 if buffer is not None:
@@ -55,16 +52,21 @@ class Agent(object):
                 obs = next_obs
 
                 if render:
-                    self.env.render()
+                    self.render()
+
                 if done:
                     break
 
-            """ close & return """
             self.env.close()
-            if buffer is None:
+
+            if buffer is None and frames is None:
                 return total_reward
-            else:
+            elif buffer is None:
+                return total_reward, frames
+            elif frames is None:
                 return total_reward, buffer
+            else:
+                return total_reward, buffer, frames
 
     def get_seed_episodes(self, buffer, n_episodes):
         for _ in range(n_episodes):

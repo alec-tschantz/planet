@@ -18,6 +18,9 @@ class GymEnv(object):
         seed=None,
         device="cpu",
     ):
+        self.raw_pixels = False
+        if env_name == "CarRacing-v0":
+            self.raw_pixels = True
 
         self._env = gym.make(env_name)
         self.pixels = pixels
@@ -36,6 +39,8 @@ class GymEnv(object):
     def reset(self):
         self.t = 0
         self.done = False
+        if self.raw_pixels:
+            self._env.env.viewer.window.dispatch_events()
         self._state = self._env.reset()
         return self._get_observation()
 
@@ -44,6 +49,8 @@ class GymEnv(object):
         reward = 0
 
         for _ in range(self.action_repeat):
+            if self.raw_pixels:
+                self._env.env.viewer.window.dispatch_events()
             state, reward_k, done, _ = self._env.step(action)
             reward += reward_k
             self.t += 1
@@ -66,6 +73,9 @@ class GymEnv(object):
         self._env.close()
 
     def _get_observation(self):
+        if self.raw_pixels:
+            obs = tools.img_to_obs(self._state, self.bits)
+            return obs.to(self.device)
         if self.pixels:
             rgb_array = self._env.render(mode="rgb_array")
             obs = tools.img_to_obs(rgb_array, self.bits)
@@ -75,7 +85,7 @@ class GymEnv(object):
 
     @property
     def state_size(self):
-        if self.pixels:
+        if self.pixels or self.raw_pixels:
             return (3, 64, 64)
         else:
             return self._env.observation_space.shape
