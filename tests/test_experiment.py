@@ -32,6 +32,7 @@ def main(args):
         action_repeat=args.action_repeat,
         device=args.device,
     )
+
     action_size = env.action_size[0]
     buffer = Buffer(action_size, args.pixels, device=args.device)
 
@@ -62,6 +63,7 @@ def main(args):
     print(message.format(buffer.current_episodes, buffer.current_size))
 
     for episode in range(args.n_episodes):
+        print("\n === Episode {} ===".format(episode))
 
         total_obs_loss = 0
         total_rew_loss = 0
@@ -83,10 +85,10 @@ def main(args):
             total_kl_loss += kl_loss.item()
 
             if epoch % args.log_every == 0 and epoch > 0:
+                message = "> Epoch {} [ obs {:.2f} | rew {:.2f} | kl {:.2f}]"
                 print(
-                    "Episode {} [train epoch {}] | obs {:.2f} | reward {:.2f} | kl {:.2f}]".format(
+                    message.format(
                         episode,
-                        epoch,
                         total_obs_loss / epoch,
                         total_rew_loss / epoch,
                         total_kl_loss / epoch,
@@ -95,11 +97,8 @@ def main(args):
 
         expl_reward, buffer = agent.run_episode(buffer, action_noise=args.action_noise)
         reward, buffer = agent.run_episode(buffer)
-        print(
-            "Episode {} [explore reward {:.2f} | reward {:.2f} | total frames {:.2f}]".format(
-                episode, expl_reward, reward, buffer.current_size
-            )
-        )
+        message = "Reward [expl rew {:.2f} | rew {:.2f} | frames {:.2f}]"
+        print(message.format(episode, expl_reward, reward, buffer.current_size))
 
         frames = validate.test_rollout(env, rssm, planner)
         tools.write_video(frames, "{}/video_{}.mp4".format(args.data_path, episode))

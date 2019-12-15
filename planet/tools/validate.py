@@ -24,17 +24,19 @@ def test_rollout(env, model, planner):
             )
             hidden = rollout["hiddens"].squeeze(0)
             state = rollout["posterior_states"].squeeze(0)
+            
             action = planner(hidden, state)
             next_obs, reward, done = env.step(action[0].cpu())
             total_reward += reward.item()
             
             """ store frames """
-            decoded_obs = model.decode_obs(hidden, state)
+            decoded_obs = model.decode_obs(hidden, state).cpu()
             cat = torch.cat([obs, decoded_obs], dim=3)
-            grid = make_grid(cat + 0.5, nrow=5).cpu().numpy()
+            grid = make_grid(cat + 0.5, nrow=5).numpy()
             frames.append(grid)
       
             obs = next_obs
+        
         env.close()
         return frames
 

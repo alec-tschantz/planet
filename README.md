@@ -5,7 +5,6 @@
 This repository provides a reimplementation of the [Kaixhin/PlaNet](https://github.com/Kaixhin/PlaNet) repository, which is itself a reimplementation of [Learning Latent Dynamics for Planning from Pixels](https://arxiv.org/abs/1811.04551) and the associated [code](https://github.com/google-research/planet). It was implemented for the purpose of understanding the model, and currently implements nothing over and above the previous implementations.
 
 ## Requirements
-
 - `numpy`
 - `torch`
 - `gym`
@@ -15,8 +14,11 @@ This repository provides a reimplementation of the [Kaixhin/PlaNet](https://gith
 - [@Kaixhin](https://github.com/Kaixhin) for [Kaixhin/PlaNet](https://github.com/Kaixhin/PlaNet), the basis for this implementation
 - [@danijar](https://github.com/danijar) for [google-research/planet](https://github.com/google-research/planet)
 
-
 ## Tasks
+- Test with fully observed
+- Do model / data loading
+- Use visdoom [https://github.com/shakenes/vizdoomgym]
+- Use [pybullet](https://github.com/benelot/pybullet-gym)
 - Add `data` to `.gitignore`
 - Normalization
 - _Error_: Buffer does not work if buffer is less than sequence length
