@@ -65,7 +65,6 @@ def main(args):
 
     for episode in range(log.episode, args.n_episodes):
         print("\n === Episode {} ===".format(episode))
-        log.log_data(episode)
     
         total_obs_loss = 0
         total_rew_loss = 0
@@ -103,10 +102,11 @@ def main(args):
         reward, buffer, frames = agent.run_episode(buffer=buffer, frames=True)
         message = "Reward [expl rew {:.2f} | rew {:.2f} | frames {:.2f}]"
         print(message.format(expl_reward, reward, buffer.current_size))
-        log.save_video(frames, episode)
         
+        log.save_video(frames, episode)
+        log.log_data(episode + 1)
         log.checkpoint()
-        log.save_metrics()
+
         
 
 if __name__ == "__main__":

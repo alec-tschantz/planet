@@ -15,6 +15,8 @@ This repository provides a reimplementation of the [Kaixhin/PlaNet](https://gith
 
 ## Tasks
 - __Improvements__
+  - log env and rest at same time
+  - Reduce action repeat
   - `args` is not being parsed correctly because of `Colab`
   - Finesse model loading + checkpoint (no need for seed data)
   - Metrics - including time (option to save to GDrive)
