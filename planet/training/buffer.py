@@ -25,10 +25,7 @@ class Buffer(object):
         self.device = device
 
         if self.pixels:
-            self.obs = np.empty(
-                (buffer_size, 3, 64, 64),
-                dtype=np.uint8,
-            )
+            self.obs = np.empty((buffer_size, 3, 64, 64), dtype=np.uint8)
         else:
             self.obs = np.empty((buffer_size, state_size), dtype=np.float32)
 
@@ -68,6 +65,22 @@ class Buffer(object):
     def sample_and_shift(self, batch_size, seq_len):
         obs, actions, rewards, non_terminals = self.sample(batch_size, seq_len)
         return self._shift_sequences(obs, actions, rewards, non_terminals)
+
+    def save(self, save_path):
+        """
+        np.savez_compressed(
+            save_path,
+            obs=self.obs,
+            actions=self.actions,
+            rewards=self.rewards,
+            non_terminals=self.non_terminals,
+        )  
+        """
+        np.savez_compressed(
+            save_path,
+            obs=self.obs
+        )
+        print("Saved data _data_ at {}".format(save_path))
 
     @property
     def current_size(self):

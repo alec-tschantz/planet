@@ -15,7 +15,7 @@ import roboschool
 sys.path.append(str(pathlib.Path(__file__).parent.parent))
 
 from planet.envs import GymEnv, DebugEnv
-from planet.training import Buffer, Trainer
+from planet.training import DataBuffer, Trainer
 from planet.control import Agent, Planner
 from planet.models import RSSModel
 from planet.tools import Logger
@@ -23,6 +23,9 @@ from planet import tools
 
 
 def main(args):
+
+    makedirs(args.logdir, exist_ok=True)
+
     env = GymEnv(
         args.env_name,
         args.pixels,
@@ -32,7 +35,7 @@ def main(args):
     )
 
     action_size = env.action_size[0]
-    buffer = Buffer(action_size, args.pixels, device=args.device)
+    buffer = DataBuffer(args.logdir, action_size, device=args.device)
 
     rssm = RSSModel(
         action_size,
@@ -57,15 +60,15 @@ def main(args):
 
     agent = Agent(env, planner, rssm, device=args.device)
 
-    log = Logger(args.data_path, model=rssm, optim=optim, args=args)
+    log = Logger(args.logdir, model=rssm, optim=optim, buffer=buffer)
 
     buffer = agent.get_seed_episodes(buffer, args.n_seed_episodes)
     message = "Collected [{} episodes] [{} frames]"
     print(message.format(buffer.current_episodes, buffer.current_size))
 
-    for episode in range(log.episode, args.n_episodes):
+    for episode in range(args.n_episodes):
         print("\n === Episode {} ===".format(episode))
-    
+
         total_obs_loss = 0
         total_rew_loss = 0
         total_kl_loss = 0
@@ -102,37 +105,35 @@ def main(args):
         reward, buffer, frames = agent.run_episode(buffer=buffer, frames=True)
         message = "Reward [expl rew {:.2f} | rew {:.2f} | frames {:.2f}]"
         print(message.format(expl_reward, reward, buffer.current_size))
-        
-        log.save_video(frames, episode)
-        log.log_data(episode + 1)
-        log.checkpoint()
 
-        
+        log.save_video(frames, episode)
+        log.checkpoint(episode)
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--env_name", type=str, default="Pendulum-v0")
     parser.add_argument("--max_episode_len", type=int, default=200)
-    parser.add_argument("--action_repeat", type=int, default=2)
-    parser.add_argument("--data_path", type=str, default="data_2")
+    parser.add_argument("--action_repeat", type=int, default=5)
+    parser.add_argument("--logdir", type=str, default="data")
     parser.add_argument("--device", type=str, default="cpu")
     parser.add_argument("--pixels", type=bool, default=True)
-    parser.add_argument("--hidden_size", type=int, default=10)
+    parser.add_argument("--hidden_size", type=int, default=50)
     parser.add_argument("--state_size", type=int, default=10)
-    parser.add_argument("--embedding_size", type=int, default=10)
-    parser.add_argument("--node_size", type=int, default=10)
+    parser.add_argument("--embedding_size", type=int, default=30)
+    parser.add_argument("--node_size", type=int, default=100)
     parser.add_argument("--free_nats", type=int, default=3)
     parser.add_argument("--lr", type=float, default=1e-3)
     parser.add_argument("--epsilon", type=float, default=1e-4)
-    parser.add_argument("--plan_horizon", type=int, default=2)
+    parser.add_argument("--plan_horizon", type=int, default=5)
     parser.add_argument("--optim_iters", type=int, default=2)
-    parser.add_argument("--candidates", type=int, default=10)
-    parser.add_argument("--top_candidates", type=int, default=2)
-    parser.add_argument("--n_seed_episodes", type=int, default=1)
-    parser.add_argument("--n_train_epochs", type=int, default=10)
+    parser.add_argument("--candidates", type=int, default=100)
+    parser.add_argument("--top_candidates", type=int, default=10)
+    parser.add_argument("--n_seed_episodes", type=int, default=5)
+    parser.add_argument("--n_train_epochs", type=int, default=20)
     parser.add_argument("--n_episodes", type=int, default=100)
-    parser.add_argument("--batch_size", type=int, default=15)
-    parser.add_argument("--seq_len", type=int, default=2)
+    parser.add_argument("--batch_size", type=int, default=20)
+    parser.add_argument("--seq_len", type=int, default=5)
     parser.add_argument("--grad_clip_norm", type=int, default=1000)
     parser.add_argument("--log_every", type=int, default=1)
     parser.add_argument("--action_noise", type=float, default=0.3)

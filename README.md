@@ -15,15 +15,7 @@ This repository provides a reimplementation of the [Kaixhin/PlaNet](https://gith
 
 ## Tasks
 - __Improvements__
-  - log env and rest at same time
-  - Reduce action repeat
-  - `args` is not being parsed correctly because of `Colab`
-  - Finesse model loading + checkpoint (no need for seed data)
-  - Metrics - including time (option to save to GDrive)
-  - Sort data set loading + big solution needed
-  - Test with fully observed
-  - Ensembles
-  - Normalization
+  - memmap
 
 - __Environments__
   - Use visdoom [https://github.com/shakenes/vizdoomgym]
@@ -31,3 +23,4 @@ This repository provides a reimplementation of the [Kaixhin/PlaNet](https://gith
 
 - __Errors__
   - Buffer does not work if buffer is less than sequence length
+
