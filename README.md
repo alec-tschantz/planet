@@ -14,13 +14,14 @@ This repository provides a reimplementation of the [Kaixhin/PlaNet](https://gith
 - [@danijar](https://github.com/danijar) for [google-research/planet](https://github.com/google-research/planet)
 
 ## Tasks
-- __Improvements__
-  - memmap
 
+- __Improvements__
+    - Save `args`
+  
 - __Environments__
   - Use visdoom [https://github.com/shakenes/vizdoomgym]
   - Use [pybullet](https://github.com/benelot/pybullet-gym)
 
 - __Errors__
   - Buffer does not work if buffer is less than sequence length
-
+  - Need to account for action repeat in number of steps

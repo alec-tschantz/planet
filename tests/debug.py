@@ -4,7 +4,8 @@
 import sys
 import pathlib
 import argparse
-from os import makedirs
+import pickle
+import os
 
 import torch
 from torch.nn import functional as F
@@ -18,13 +19,10 @@ from planet.envs import GymEnv, DebugEnv
 from planet.training import DataBuffer, Trainer
 from planet.control import Agent, Planner
 from planet.models import RSSModel
-from planet.tools import Logger
 from planet import tools
 
 
 def main(args):
-
-    makedirs(args.logdir, exist_ok=True)
 
     env = GymEnv(
         args.env_name,
@@ -57,16 +55,25 @@ def main(args):
         candidates=args.candidates,
         top_candidates=args.top_candidates,
     )
-
     agent = Agent(env, planner, rssm, device=args.device)
 
-    log = Logger(args.logdir, model=rssm, optim=optim, buffer=buffer)
+    if tools.logdir_exists(args.logdir):
+        print("Loading existing _logdir_ at {}".format(args.logdir))
+        model_dict = tools.load_model_dict(args.logdir)
+        rssm.load_state_dict(model_dict)
+        optim.load_state_dict(model_dict["optim"])
+        buffer = tools.load_buffer(args.logdir)
+        metrics = tools.load_metrics(args.logdir)
+    else:
+        tools.init_dirs(args.logdir)
+        metrics = tools.build_metrics()
+        buffer.build_buffers()
+        buffer = agent.get_seed_episodes(buffer, args.n_seed_episodes)
+        message = "Collected [{} episodes] [{} frames]"
+        print(message.format(buffer.total_episodes, buffer.total_steps))
 
-    buffer = agent.get_seed_episodes(buffer, args.n_seed_episodes)
-    message = "Collected [{} episodes] [{} frames]"
-    print(message.format(buffer.current_episodes, buffer.current_size))
 
-    for episode in range(args.n_episodes):
+    for episode in range(metrics["episode"], args.n_episodes):
         print("\n === Episode {} ===".format(episode))
 
         total_obs_loss = 0
@@ -99,44 +106,55 @@ def main(args):
                     )
                 )
 
+        metrics["obs_loss"].append(total_obs_loss)
+        metrics["reward_loss"].append(total_rew_loss)
+        metrics["kl_loss"].append(total_kl_loss)
+
         expl_reward, buffer = agent.run_episode(
             buffer=buffer, action_noise=args.action_noise
         )
-        reward, buffer, frames = agent.run_episode(buffer=buffer, frames=True)
-        message = "Reward [expl rew {:.2f} | rew {:.2f} | frames {:.2f}]"
-        print(message.format(expl_reward, reward, buffer.current_size))
+        metrics["train_rewards"].append(expl_reward)
 
-        log.save_video(frames, episode)
-        log.checkpoint(episode)
+        reward, buffer, frames = agent.run_episode(buffer=buffer, frames=True)
+        metrics["test_rewards"].append(reward)
+
+        message = "Reward [expl rew {:.2f} | rew {:.2f} | frames {:.2f}]"
+        print(message.format(expl_reward, reward, buffer.total_steps))
+
+        metrics["episode"] += 1
+        tools.save_video(args.logdir, episode, frames)
+        tools.save_model(args.logdir, rssm, optim)
+        tools.save_buffer(args.logdir, buffer)
+        tools.save_metrics(args.logdir, metrics)
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--env_name", type=str, default="Pendulum-v0")
     parser.add_argument("--max_episode_len", type=int, default=200)
-    parser.add_argument("--action_repeat", type=int, default=5)
-    parser.add_argument("--logdir", type=str, default="data")
+    parser.add_argument("--action_repeat", type=int, default=3)
+    parser.add_argument("--logdir", type=str, default="logdir")
     parser.add_argument("--device", type=str, default="cpu")
     parser.add_argument("--pixels", type=bool, default=True)
-    parser.add_argument("--hidden_size", type=int, default=50)
-    parser.add_argument("--state_size", type=int, default=10)
-    parser.add_argument("--embedding_size", type=int, default=30)
+    parser.add_argument("--hidden_size", type=int, default=100)
+    parser.add_argument("--state_size", type=int, default=20)
+    parser.add_argument("--embedding_size", type=int, default=100)
     parser.add_argument("--node_size", type=int, default=100)
     parser.add_argument("--free_nats", type=int, default=3)
     parser.add_argument("--lr", type=float, default=1e-3)
     parser.add_argument("--epsilon", type=float, default=1e-4)
-    parser.add_argument("--plan_horizon", type=int, default=5)
+    parser.add_argument("--plan_horizon", type=int, default=6)
     parser.add_argument("--optim_iters", type=int, default=2)
-    parser.add_argument("--candidates", type=int, default=100)
-    parser.add_argument("--top_candidates", type=int, default=10)
-    parser.add_argument("--n_seed_episodes", type=int, default=5)
-    parser.add_argument("--n_train_epochs", type=int, default=20)
+    parser.add_argument("--candidates", type=int, default=500)
+    parser.add_argument("--top_candidates", type=int, default=50)
+    parser.add_argument("--n_seed_episodes", type=int, default=2)
+    parser.add_argument("--n_train_epochs", type=int, default=10)
     parser.add_argument("--n_episodes", type=int, default=100)
-    parser.add_argument("--batch_size", type=int, default=20)
-    parser.add_argument("--seq_len", type=int, default=5)
+    parser.add_argument("--batch_size", type=int, default=50)
+    parser.add_argument("--seq_len", type=int, default=4)
     parser.add_argument("--grad_clip_norm", type=int, default=1000)
-    parser.add_argument("--log_every", type=int, default=1)
     parser.add_argument("--action_noise", type=float, default=0.3)
+    parser.add_argument("--log_every", type=int, default=5)
     args = parser.parse_args()
     main(args)
 
